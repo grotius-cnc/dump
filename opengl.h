@@ -1,0 +1,37 @@
+#ifndef OPENGL_H
+#define OPENGL_H
+
+#include <QMainWindow>
+#include <mainwindow.h>
+#include <QWidget>
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QToolTip>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <QtWidgets>
+
+class opengl : public QOpenGLWidget{
+
+public:
+    opengl(QWidget *parent = nullptr);
+    ~opengl();
+
+    void setInterval(double theInterval);
+    void setScale(double thexScale, double theyScale);
+    void set1Vec(std::vector<double> theyVec);
+    void set2Vec(std::vector<double> theyVec);
+    void set3Vec(std::vector<double> theyVec);
+    void set1VecShift(double theyShift);
+    void set2VecShift(double theyShift);
+    void set3VecShift(double theyShift);
+    void initializeGL();
+    void resizeGL(int w, int h);
+    void paintGL();
+
+private:
+    opengl *myOpengl;
+};
+
+#endif
