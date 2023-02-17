@@ -53,9 +53,11 @@ void MainWindow::on_pushButton_pressed()
 
     sc *sc= new class sc();
     sc->set(a,dv);
-    sc->create(vo,vm,ve,acs,ace,s);
+    sc->construct_motion(vo,vm,ve,acs,ace,s);
     sc->plot(0.01,vvec,svec,avec);
-    sc->print_journal();
+    //sc->print_journal();
+    sc->print_interpolation(0.01);
+
 
     myOpenGl->set1Vec(vvec);
     myOpenGl->set2Vec(svec);
