@@ -999,6 +999,10 @@ void sc::stitch_interpolate(double at_time,
         vi=vo - a*t;
         si=vo*t - 0.5*a*(t*t);
     }
+    if(id==period_id::t4){
+        vi=vo;
+        si=vo*t;
+    }
 }
 
 void sc::interpolate(double at_time, double &vi, double &si, double &ai, period_id &id){
