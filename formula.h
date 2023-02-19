@@ -1,90 +1,98 @@
-#ifndef FORMULAS_H
-#define FORMULAS_H
+//! Author  : SKynet Cyberdyne
+//! Licence : GPL2
+//! Data    : 2023
+//! Info    : https://www.wolframalpha.com/widgets/view.jsp?id=c778a2d8bf30ef1d3c2d6bc5696defad
 
-#include <math.h>
-#include <iostream>
+/* Forumula cheet sheet.
 
-/*
+    t       time.
+    ct      curve time.
+    ht      half time.
+    tf      time front.
+    ts      time start.
+    te      time end.
+
+    jm      jerk max.
+    as      acceleration at inflection point.
+
+    v,vi    velocity.
+    vo      velocity start.
+    ve      velocity end.
+
+    s,si    displacement.
+
+    a,ai    acceleration.
+
+general concave_convex:
+    ct=jm/2*as;
+    as=2*a;
+    jm=2*as/ct;
+    s=abs(ve*ve - vo*vo)/(2*a);
+    ct=abs(ve-vo)/a;
+    ht=0.5*ct.
+
 curve t1:
-vi=vo+jm*(t*t)/2;                           //! Velocity current.
-    vo=vi-(jm*(t*t)/2);
-    t=sqrt(2)*sqrt((vi)-vo)/sqrt(jm);
-si=vo*t+jm*(t*t*t)/6;                       //! Displacment.
-ai=jm*t;                                    //! Acceleration.
-ts=ai/jm;                                    //! Time at acceleration.
+    vi=vo+jm*(t*t)/2;
+        vo=vi-(jm*(t*t)/2);
+        t=sqrt(2)*sqrt((vi)-vo)/sqrt(jm);
+        t=sqrt(-2*vf_+2*ve)/sqrt(jm);
 
-To get t from formula : s=vo*t+jm*(t*t*t)/6;
-used https://www.wolframalpha.com/widgets/view.jsp?id=c778a2d8bf30ef1d3c2d6bc5696defad
-to get a rearranged formula for solving t:
-t= ( cbrt(3*(jm*jm)*s+ sqrt(9*(jm*jm*jm*jm)*(s*s)+8*(jm*jm*jm)*(vo*vo*vo))) / jm ) - ( 2*vo / cbrt(3*(jm*jm)*s+ sqrt(9*(jm*jm*jm*jm)*(s*s)+8*(jm*jm*jm)*(vo*vo*vo))));
+
+    si=vo*t+jm*(t*t*t)/6;
+        t=(cbrt(3*(jm*jm)*s+ sqrt(9*(jm*jm*jm*jm)*(s*s)+8*(jm*jm*jm)*(vo*vo*vo))) / jm ) - ( 2*vo / cbrt(3*(jm*jm)*s+ sqrt(9*(jm*jm*jm*jm)*(s*s)+8*(jm*jm*jm)*(vo*vo*vo))));
+    ai=jm*t;
+    ts=ai/jm;
 
 curve t3:
-vi=vh + as*t - jm*(t*t)/2;                  //! Velocity.
-    t= (as -  sqrt( (as*as) + 2*(vh-vi) *jm))/jm;
-    vh = -as*t+((jm*(t*t))/2)+vi
+    vi=vh + as*t - jm*(t*t)/2;
+        t= (as -  sqrt( (as*as) + 2*(vh-vi) *jm))/jm;
+        vh = -as*t+((jm*(t*t))/2)+vi
 
-si=vh*t + as*(t*t)/2 - jm*(t*t*t)/6;        //! Displacment convex curve.
-    t= see function solve_for_t
-si+=sh;                                     //! Add concave displacement.
-ai=as-jm*t;                                 //! Acceleration.
-ts=(as-ai)/jm                                //! Time at acceleration.
-
-
+    si=vh*t + as*(t*t)/2 - jm*(t*t*t)/6;
+        t= see function solve_for_t
+    si+=sh;
+    ai=as-jm*t;
+    ts=(as-ai)/jm
 
 curve t5:
-vi=vo-jm*(t*t)/2;
-    vo=((jm*(t*t))/2)+vi;
-    t= (sqrt(2)*sqrt(vo-vi))/sqrt(jm)
-si=vo*t-jm*(t*t*t)/6;
-ts=ai/jm
-ai=jm*t;
+    vi=vo-jm*(t*t)/2;
+        vo=((jm*(t*t))/2)+vi;
+        te=(sqrt(2)*sqrt(vf_-ve))/sqrt(jm);
+    si=vo*t-jm*(t*t*t)/6;
+    ts=ai/jm
+    ai=jm*t;
 
 curve t7:
-ve=vh - as*t + jm*(t*t)/2;
-    vh=as*t - ((jm*(t*t))/2) + ve;
-ai=as-jm*t;
-ts=(as-acs)/jm;
-si=vh*t - as*(t*t)/2 + jm*(t*t*t)/6
-
-
-concave_convex:
-as=2*a;                                     //! Max acceleration at inflection point. [2*A]
-jm=2*as/ct;                                 //! Max jerk. Document page 2, ct=curve time. curve time is concave + convex periods together.
-s=abs(ve*ve - vo*vo)/(2*a);                 //! Total curve displacement.
-ct=abs(ve-vo)/a;                            //! Total curve time.
-ht=0.5*ct.                                  //! Half curve time.
-
-for interupt limit the curve steepness, given a "jm" jerk max value:
-ct=jm/2*as;
-for acc:
-ve=vo + a*ct;
-for dcc:
-ve=vo - a*ct;
+    ve=vh - as*t + jm*(t*t)/2;
+        vh=as*t - ((jm*(t*t))/2) + ve;
+    ai=as-jm*t;
+    ts=(as-acs)/jm;
+    si=vh*t - as*(t*t)/2 + jm*(t*t*t)/6
 
 linear_acceleration:
-v=vo + a*t;                                 //! Velocity.
-s=vo*t + 0.5*a*(t*t);                       //! Displacement.
-    t= abs( (-vo + sqrt(vo*vo - 2*a*s)) / a);
-s=(ve*ve) - (vo*vo)/(2*a)                   //! Displacement.
-v=sqrt((vo*vo) + 2*a*s);                    //! Velocity.
+    v=vo + a*t;
+    s=vo*t + 0.5*a*(t*t);
+        t= abs( (-vo + sqrt(vo*vo - 2*a*s)) / a);
+    s=(ve*ve) - (vo*vo)/(2*a)
+    v=sqrt((vo*vo) + 2*a*s);
 
 linear_deceleration:
-v=vo - a*t;                                 //! Velocity.
-s=vo*t - 0.5*a*(t*t);                       //! Displacement.
-    t= abs( (-vo + sqrt(vo*vo - 2*a*s)) / a);
-s=((vo*vo) - (ve*ve))/(2*a)                 //! Displacement.
-v=sqrt((vo*vo) - 2*a*s);                    //! Velocity.
+    v=vo - a*t;
+    s=vo*t - 0.5*a*(t*t);
+        t= abs( (-vo + sqrt(vo*vo - 2*a*s)) / a);
+    s=((vo*vo) - (ve*ve))/(2*a)
+    v=sqrt((vo*vo) - 2*a*s);
 
 linear_general:
-ct=abs(ve-vo)/a                             //! Total curve time.
+    ct=abs(ve-vo)/a
 
 steady:
-s=v*t;                                      //! Displacement.
-t=s/v;                                      //! Time.
-v=s/t;                                      //! Velocity.
+    s=v*t;
+    t=s/v;
+    v=s/t;
 */
 
-#endif
+
 
 
 

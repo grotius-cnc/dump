@@ -1,10 +1,16 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <iostream>
+#include <chrono>
 #include <stdio.h>
 #include <math.h>
 #include <vector>
-#include <functions.h>
+
+//! Function elapsed time in milliseconds.
+double nanoseconds_to_milliseconds(double nanoseconds){
+    //! Convert from nano- to milliseconds.
+    return nanoseconds*0.000001;
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -16,7 +22,9 @@ MainWindow::MainWindow(QWidget *parent)
     myOpenGl = new opengl();
     //! Graph scale.
     myOpenGl->setScale(10,10);
-    myOpenGl->setInterval(0.01);
+    myOpenGl->setInterval(0.001);
+
+    scurve=new class sc();
 
     //! Startup calculation.
     on_pushButton_pressed();
@@ -37,10 +45,14 @@ void MainWindow::thread(){
 
 }
 
+
+void MainWindow::on_pushButton_run_pressed()
+{
+
+}
+
 void MainWindow::on_pushButton_pressed()
 {
-    std::vector<double> vvec, svec, avec;
-
     double vo=ui->doubleSpinBox_vo->value();
     double vm=ui->doubleSpinBox_vm->value();
     double ve=ui->doubleSpinBox_ve->value();
@@ -49,15 +61,14 @@ void MainWindow::on_pushButton_pressed()
     double acs=ui->doubleSpinBox_acs->value();
     double ace=ui->doubleSpinBox_ace->value();
     double s=ui->doubleSpinBox_s->value();
-    bool debug=ui->checkBox_debug->isChecked();
 
-    sc *sc= new class sc();
-    sc->set(a,dv);
-    sc->construct_motion(vo,vm,ve,acs,ace,s);
-    sc->plot(0.01,vvec,svec,avec);
-    //sc->print_journal();
-    sc->print_interpolation(0.01);
+    scurve->set(a,dv);
 
+    scurve->build_motion(vo,vm,ve,acs,ace,s);
+
+    std::vector<double> vvec, svec, avec;
+    scurve->vo_ve_plot(0.001,vvec,svec,avec);
+    //scurve->vo_ve_print_interpolation(0.1);
 
     myOpenGl->set1Vec(vvec);
     myOpenGl->set2Vec(svec);

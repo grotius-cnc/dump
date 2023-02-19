@@ -37,8 +37,10 @@ set(PROJECT_SOURCES
         mainwindow.ui
         opengl.h
         opengl.cpp
-        functions.h
-        functions.cpp
+        sc.h
+        sc.cpp
+        sc_motion.h
+        sc_motion.cpp
         formula.h
 )
 
