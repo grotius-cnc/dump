@@ -3,8 +3,6 @@
 
 #include <QMainWindow>
 #include <opengl.h>
-#include <sc.h>
-#include <sc_motion.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -35,9 +33,6 @@ private slots:
 
     void on_doubleSpinBox_ace_valueChanged(double arg1);
 
-    void on_pushButton_pressed();
-
-
     void on_doubleSpinBox_dv_valueChanged(double arg1);
 
     void on_pushButton_run_pressed();
@@ -46,7 +41,5 @@ private:
     Ui::MainWindow *ui;
     QTimer *timer;
     opengl *myOpenGl;
-    sc *scurve;
-    sc_motion *motion;
 };
 #endif // MAINWINDOW_H

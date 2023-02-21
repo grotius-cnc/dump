@@ -239,13 +239,6 @@ color: rgb(255, 255, 255);
        </property>
       </widget>
      </item>
-     <item row="12" column="0" colspan="2">
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>go</string>
-       </property>
-      </widget>
-     </item>
      <item row="7" column="2">
       <widget class="QLabel" name="label_10">
        <property name="font">

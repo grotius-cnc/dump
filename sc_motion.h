@@ -1,33 +1,46 @@
 #ifndef SC_MOTION_H
 #define SC_MOTION_H
 
-#include <sc.h>
+#include <sc_engine.h>
+#include <sc_struct.h>
 
-class sc_motion
-{
+//! Scurve front end interface.
+class sc_motion {
 public:
-
     sc_motion();
 
-    double a=2;
-    double dv=10;
-    double vm=25;
-    double ace=0;
-    double ve=0;
-    double dtg=100;
+    struct sc_axis {
+        sc_motion_joint_id id;
+        sc_motion_params params;
+        sc_engine *engine=new sc_engine();
+    };
 
-    double curvel=0;
-    double curacc=0;
+    sc_status nr_of_joints(int nr_of_axis);
 
-    void run();
+    sc_status set(sc_motion_joint_id id,
+                  sc_motion_params params);
+
+    sc_status update(double interval,
+                     sc_motion_joint_id id,
+                     sc_motion_in in,
+                     sc_motion_out &out);
 
 private:
-
-    sc *scurve=new sc();
-    period_id id;
-    double newpos=0,newvel=0,newacc=0;
-    double si=0;
-    double ct=0;
+    sc_axis *axis;
+    std::vector<sc_axis*> axisvec;
+    uint reset_vec_nr=0;
 };
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+

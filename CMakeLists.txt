@@ -37,8 +37,9 @@ set(PROJECT_SOURCES
         mainwindow.ui
         opengl.h
         opengl.cpp
-        sc.h
-        sc.cpp
+        sc_struct.h
+        sc_engine.h
+        sc_engine.cpp
         sc_motion.h
         sc_motion.cpp
         formula.h
