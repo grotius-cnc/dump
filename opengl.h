@@ -20,9 +20,10 @@ public:
 
     void setInterval(double theInterval);
     void setScale(double thexScale, double theyScale);
-    void set1Vec(std::vector<double> theyVec);
-    void set2Vec(std::vector<double> theyVec);
-    void set3Vec(std::vector<double> theyVec);
+    void setj0vec(std::vector<double> theyVec);
+    void setj1Vec(std::vector<double> theyVec);
+    void setj2Vec(std::vector<double> theyVec);
+
     void set1VecShift(double theyShift);
     void set2VecShift(double theyShift);
     void set3VecShift(double theyShift);

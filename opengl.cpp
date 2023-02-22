@@ -9,8 +9,7 @@ double yScale=0;
 double t=0;
 double interval=0.01;
 
-std::vector<double> y1Vec, y2Vec, y3Vec;
-double shifty1Vec, shifty2Vec, shifty3Vec;
+std::vector<double> j0vec, j1vec, j2vec;
 
 opengl::opengl(QWidget *parent)
     : QOpenGLWidget(parent)
@@ -47,29 +46,18 @@ void opengl::setInterval(double theInterval){
     interval=theInterval;
 }
 
-void opengl::set1Vec(std::vector<double> theyVec){
-    y1Vec=theyVec;
+void opengl::setj0vec(std::vector<double> theyVec){
+    j0vec=theyVec;
 }
 
-void opengl::set2Vec(std::vector<double> theyVec){
-    y2Vec=theyVec;
+void opengl::setj1Vec(std::vector<double> theyVec){
+    j1vec=theyVec;
 }
 
-void opengl::set3Vec(std::vector<double> theyVec){
-    y3Vec=theyVec;
+void opengl::setj2Vec(std::vector<double> theyVec){
+    j2vec=theyVec;
 }
 
-void opengl::set1VecShift(double theyShift){
-    shifty1Vec=theyShift;
-}
-
-void opengl::set2VecShift(double theyShift){
-    shifty2Vec=theyShift;
-}
-
-void opengl::set3VecShift(double theyShift){
-    shifty3Vec=theyShift;
-}
 
 void opengl::paintGL()
 {
@@ -87,8 +75,8 @@ void opengl::paintGL()
     glBegin(GL_LINE_STRIP);
     glLineWidth(1);
     t=0;
-    for(uint i=0; i<y1Vec.size(); i++){
-        glVertex2d(t*xScale,(this->height()+shifty1Vec)-(y1Vec.at(i)*yScale));
+    for(uint i=0; i<j0vec.size(); i++){
+        glVertex2d(t*xScale,this->height()-(j0vec.at(i)*yScale));
         t+=interval;
     }
     glEnd();
@@ -96,9 +84,8 @@ void opengl::paintGL()
     glColor4d(255,255,0,255);
     glBegin(GL_LINE_STRIP);
     t=0;
-    for(uint i=0; i<y2Vec.size(); i++){
-        double scale=0.5;
-        glVertex2d(t*xScale,(this->height()+shifty2Vec)-(y2Vec.at(i)*scale));
+    for(uint i=0; i<j1vec.size(); i++){
+        glVertex2d(t*xScale,this->height()-(j1vec.at(i)*yScale));
         t+=interval;
     }
     glEnd();
@@ -106,8 +93,8 @@ void opengl::paintGL()
     glColor4d(255,255,255,255);
     glBegin(GL_LINE_STRIP);
     t=0;
-    for(uint i=0; i<y3Vec.size(); i++){
-        glVertex2d(t*xScale,(this->height()+shifty3Vec)-(y3Vec.at(i)*yScale));
+    for(uint i=0; i<j2vec.size(); i++){
+        glVertex2d(t*xScale,this->height()-(j2vec.at(i)*yScale));
         t+=interval;
     }
     glEnd();

@@ -1,6 +1,8 @@
 #ifndef SC_STRUCT_H
 #define SC_STRUCT_H
 
+typedef double T;
+
 //! Enum to define curve periods.
 enum sc_period_id {
     id_t1,
@@ -18,38 +20,38 @@ struct sc_period {
     //! Period type, t1,t2,t3, etc,
     sc_period_id id=sc_period_id::id_none;
     //! Velocity start.
-    double vo=0;
+    T vo=0;
     //! Velocity end.
-    double ve=0;
+    T ve=0;
     //! Acceleration start.
-    double acs=0;
+    T acs=0;
     //! Acceleration end.
-    double ace=0;
+    T ace=0;
     //! Netto curve displacement.
-    double ncs=0;
+    T ncs=0;
     //! Netto curve time.
-    double nct=0;
+    T nct=0;
 };
 
 struct sc_motion_params {
-    double maxacc=0;
-    double maxdv=0;
+    T maxacc=0;
+    T maxdv=0;
 };
 
 struct sc_motion_in {
-    double curvel=0;
-    double maxvel=0;
-    double endvel=0;
-    double curpos=0;
-    double endpos=0;
-    double curacc=0;
-    double endacc=0;
+    T curvel=0;
+    T maxvel=0;
+    T endvel=0;
+    T curpos=0;
+    T endpos=0;
+    T curacc=0;
+    T endacc=0;
 };
 
 struct sc_motion_out {
-    double newvel=0;
-    double newpos=0;
-    double newacc=0;
+    T newvel=0;
+    T newpos=0;
+    T newacc=0;
     bool finished=0;
 };
 

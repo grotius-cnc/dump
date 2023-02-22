@@ -11,19 +11,21 @@ public:
 
     struct sc_axis {
         sc_motion_joint_id id;
-        sc_motion_params params;
         sc_engine *engine=new sc_engine();
     };
 
     sc_status nr_of_joints(int nr_of_axis);
 
     sc_status set(sc_motion_joint_id id,
-                  sc_motion_params params);
+                  T a,
+                  T dv);
 
-    sc_status update(double interval,
+    sc_status update(T interval,
                      sc_motion_joint_id id,
                      sc_motion_in in,
                      sc_motion_out &out);
+
+    T curve_time(sc_motion_joint_id id);
 
 private:
     sc_axis *axis;
