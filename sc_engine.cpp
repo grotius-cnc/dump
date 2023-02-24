@@ -700,15 +700,16 @@ sc_status sc_engine::process_scurve(T vo, T vm, T ve, T acs, T ace, T s){
                 t3_t5_t6_t7_t1_s(ve_,ve,0,ace,false,v,l3,t);
                 l2=s-(l1+l3);
                 if(l2>0){
-                    if(l4<l1+l2+l3){ //! Don't pulish if curve lenght is less then the minimal curve.
+                    //if(l4<l1+l2+l3){ //! Don't pulish if curve lenght is less then the minimal curve.
                         t7_t1_t2_t3_t5_s(vo,i,acs,0,pb,ve_,l1,t);
                         t4_s(ve_,l2,pb,l2,t);
                         t3_t5_t6_t7_t1_s(ve_,ve,0,ace,pb,ve_,l3,t);
                         return sc_status::Ok;
-                    }
+                    //}
                 }
             }
         }
+        std::cerr<<"todo vo<vm && ve<vm."<<std::endl;
         //! No solution after sampling, building minimal curve, respecting vo, vm, ve, acs, ace.
         //! Counting on custom ve output.
         t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
@@ -739,15 +740,16 @@ sc_status sc_engine::process_scurve(T vo, T vm, T ve, T acs, T ace, T s){
                 t7_t1_t2_t3_t5_s(ve_,ve,0,ace,false,v,l3,t);
                 l2=s-(l1+l3);
                 if(l2>0){
-                    if(l4<l1+l2+l3){ //! Don't pulish if curve lenght is less then the minimal curve.
+                    //if(l4<l1+l2+l3){ //! Don't pulish if curve lenght is less then the minimal curve.
                         t3_t5_t6_t7_t1_s(vo,i,acs,0,pb,ve_,l1,t);
                         t4_s(ve_,l2,pb,l2,t);
                         t7_t1_t2_t3_t5_s(ve_,ve,0,ace,pb,v,l3,t);
                         return sc_status::Ok;
-                    }
+                    //}
                 }
             }
         }
+        std::cerr<<"todo vo>vm && ve>vm."<<std::endl;
         //! No solution after sampling, building minimal curve, respecting vo, vm, ve, acs, ace.
         //! Counting on custom ve output.
         t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,ve_,l1,t);

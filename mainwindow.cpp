@@ -77,7 +77,7 @@ void MainWindow::thread(){
 
         double t=nanoseconds_to_milliseconds(nanoseconds.count());
         tmax=std::max(t,tmax);
-        // std::cout<<std::fixed<<"t:"<<t<<" tmax:"<<tmax<<std::endl;
+        std::cout<<std::fixed<<"t:"<<t<<" tmax:"<<tmax<<std::endl;
 
         j0_vec.push_back(out_J0.newvel);
         j1_vec.push_back(out_J0.newpos);
