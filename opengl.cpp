@@ -8,6 +8,8 @@ double xScale=0;
 double yScale=0;
 double t=0;
 double interval=0.01;
+double yShift=0;
+double scale1=0;
 
 std::vector<double> j0vec, j1vec, j2vec;
 
@@ -58,6 +60,13 @@ void opengl::setj2Vec(std::vector<double> theyVec){
     j2vec=theyVec;
 }
 
+void opengl::set2VecShift(double theyShift){
+    yShift=theyShift;
+}
+
+void opengl::set1VecScale(double theScale){
+    scale1=theScale;
+}
 
 void opengl::paintGL()
 {
@@ -85,7 +94,7 @@ void opengl::paintGL()
     glBegin(GL_LINE_STRIP);
     t=0;
     for(uint i=0; i<j1vec.size(); i++){
-        glVertex2d(t*xScale,this->height()-(j1vec.at(i)*yScale));
+        glVertex2d(t*xScale,this->height()-(j1vec.at(i)*scale1));
         t+=interval;
     }
     glEnd();
@@ -94,7 +103,7 @@ void opengl::paintGL()
     glBegin(GL_LINE_STRIP);
     t=0;
     for(uint i=0; i<j2vec.size(); i++){
-        glVertex2d(t*xScale,this->height()-(j2vec.at(i)*yScale));
+        glVertex2d(t*xScale,(this->height()-yShift)-(j2vec.at(i)*yScale));
         t+=interval;
     }
     glEnd();

@@ -527,7 +527,6 @@ inline int sc_engine::t7_t1_t2_t3_t5_s(T vo, T ve, T acs, T ace, bool pb, T &ve_
         t5_v_s(ve_,0,ace,pb,ve_,s5,t5);
     }
 
-
     ncs=s7+s1+s2+s3+s5;
     nct=t7+t1+t2+t3+t5;
 
@@ -549,6 +548,7 @@ inline int sc_engine::t3_t5_t6_t7_t1_s(T vo, T ve, T acs, T ace, bool pb, T &ve_
         vo=ve_;
         acs_=0;
     }
+
     T vh=to_vh_dcc(vo,ve);
     t5_v_s_ve(vo,vh,acs_,false,ace_,ve_,s5,t5);
     if(ace<=0){
@@ -580,7 +580,6 @@ inline int sc_engine::t3_t5_t6_t7_t1_s(T vo, T ve, T acs, T ace, bool pb, T &ve_
         t1_v_s(ve_,0,ace,pb,ve_,s1,t1);
     }
 
-
     ncs=s3+s5+s6+s7+s1;
     nct=t3+t5+t6+t7+t1;
 
@@ -588,7 +587,6 @@ inline int sc_engine::t3_t5_t6_t7_t1_s(T vo, T ve, T acs, T ace, bool pb, T &ve_
 }
 
 void sc_engine::set_a_dv(T theA, T theDv){
-
 
     a=theA;
     dv=theDv;
@@ -598,38 +596,71 @@ void sc_engine::set_a_dv(T theA, T theDv){
 }
 
 sc_status sc_engine::update(T interval, sc_motion_in in, sc_motion_out &out){
-    /*
-    std::cout<<" in.curvel:"<<in.curvel
-            <<" in.maxvel:"<<in.maxvel
-           <<" in.endvel:"<<in.endvel
-          <<" in.curacc:"<<in.curacc
-         <<" in.endacc:"<<in.endacc
-        <<" in.endpos:"<<in.endpos
-       <<std::endl;
 
-    std::cout<<" a:"<<a<<" dv:"<<dv<<" jm:"<<jm<<std::endl;*/
+    //! This should be a new curve request.
+    if(sc_finished){
 
-    in.curacc=std::min(in.curacc,as);
-    in.curacc=std::max(in.curacc,-std::abs(as));
+        old_in=in;
 
-    in.endacc=std::min(in.endacc,as);
-    in.endacc=std::max(in.endacc,-std::abs(as));
+        //! Calculate new motion.
+        in.curacc=std::min(in.curacc,as);
+        in.curacc=std::max(in.curacc,-std::abs(as));
 
-    process_scurve(in.curvel,
-                   in.maxvel,
-                   in.endvel,
-                   in.curacc,
-                   in.endacc,
-                   in.endpos);
+        in.endacc=std::min(in.endacc,as);
+        in.endacc=std::max(in.endacc,-std::abs(as));
 
-    // in.curpos
+        process_scurve(in.curvel,
+                       in.maxvel,
+                       in.endvel,
+                       in.curacc,
+                       in.endacc,
+                       in.endpos);
 
-    interpolate(interval,
-                out.newvel,
-                out.newpos,
-                out.newacc);
+        pos=0; //! To reset current gui pos to 0. Otherwise outcomment it.
+        old_pos=0;
+        sc_timer=0;
+        sc_finished=0;
+    }
 
-    return sc_status::Ok;
+    //! Curve "vm "interupt request.
+    if(!is_equal_vm(old_in,in)){
+
+        //! Store new vm value.
+        old_in=in;
+
+        process_scurve(vel,
+                       in.maxvel,
+                       in.endvel,
+                       acc,
+                       in.endacc,
+                       in.endpos-pos);
+
+        old_pos=0;
+        sc_timer=0;
+    }
+
+    //! Determine if curve is finished.
+    if(sc_timer<curve_time()){
+          sc_timer+=interval;
+    } else {
+        sc_timer=0;
+        sc_finished=1;
+        return sc_status::Finished;
+    }
+
+    //! Request curve values at a certain time.
+    interpolate(sc_timer,
+                vel,
+                new_pos,
+                acc);
+
+    pos+=new_pos-old_pos;
+    old_pos=new_pos;
+    out.newpos=pos;
+    out.newvel=vel;
+    out.newacc=acc;
+
+    return sc_status::Busy;
 };
 
 sc_status sc_engine::process_scurve(T vo, T vm, T ve, T acs, T ace, T s){
@@ -637,65 +668,338 @@ sc_status sc_engine::process_scurve(T vo, T vm, T ve, T acs, T ace, T s){
     pvec.clear();
 
     T v=0, l=0;
-    T l1=0, l2=0, l3=0;
+    T l1=0, l2=0, l3=0, l4=0, l5=0;
     T t=0;
     T ace_=0, ve_=0;
 
     bool pb=1;
 
-    //! Curve flow.
     if(vo==vm && ve==vm){
-
+        t4_s(vo,s,pb,l,t);
+        return sc_status::Ok;
     }
-    if(vo<vm && ve==vm){
 
-    }
-    if(vo>vm && ve==vm){
-
-    }
-    if(vo==vm && ve<vm){
-
-    }
-    if(vo==vm && ve>vm){
-
-    }
     if(vo<vm && ve<vm){
-
         t7_t1_t2_t3_t5_s(vo,vm,acs,0,false,ve_,l1,t);
         t3_t5_t6_t7_t1_s(ve_,ve,0,ace,false,v,l3,t);
         l2=s-(l1+l3);
+        l4=l1+l3;
+
+        if(l2>0){
+            t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
+            t4_s(ve_,l2,pb,l2,t);
+            t3_t5_t6_t7_t1_s(ve_,ve,0,ace,pb,ve_,l3,t);
+            return sc_status::Ok;
+        }
 
         if(l2<0){
             T i=0;
-            T step=0.01*vm; //! 1% step.
-            for(i=ve_; i>0; i-=step){
+            T step=0.01*vm; //! 10% step.
+            for(i=ve_; i>std::max(vo,ve); i-=step){
                 t7_t1_t2_t3_t5_s(vo,i,acs,0,false,ve_,l1,t);
                 t3_t5_t6_t7_t1_s(ve_,ve,0,ace,false,v,l3,t);
                 l2=s-(l1+l3);
                 if(l2>0){
-                    break;
+                    if(l4<l1+l2+l3){ //! Don't pulish if curve lenght is less then the minimal curve.
+                        t7_t1_t2_t3_t5_s(vo,i,acs,0,pb,ve_,l1,t);
+                        t4_s(ve_,l2,pb,l2,t);
+                        t3_t5_t6_t7_t1_s(ve_,ve,0,ace,pb,ve_,l3,t);
+                        return sc_status::Ok;
+                    }
                 }
             }
-            vm=i;
+        }
+        //! No solution after sampling, building minimal curve, respecting vo, vm, ve, acs, ace.
+        //! Counting on custom ve output.
+        t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
+        t3_t5_t6_t7_t1_s(ve_,ve,0,ace,pb,v,l3,t);
+        return sc_status::Ok;
+    }
+
+    if(vo>vm && ve>vm){
+        t3_t5_t6_t7_t1_s(vo,vm,acs,0,false,ve_,l1,t);
+        t7_t1_t2_t3_t5_s(ve_,ve,0,ace,false,v,l3,t);
+        l2=s-(l1+l3);
+        l4=l1+l3;
+
+        if(l2>0){
+            t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,ve_,l1,t);
+            t4_s(ve_,l2,pb,l2,t);
+            t7_t1_t2_t3_t5_s(ve_,ve,0,ace,pb,v,l3,t);
+            return sc_status::Ok;
         }
 
-        t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
-        t4_s(ve_,l2,pb,l,t);
-        t3_t5_t6_t7_t1_s(ve_,ve,0,ace,pb,ve_,l3,t);
+        T x=0;
+        if(l2<0){
+            T i=0;
+            T step=0.01*ve; //! 1% step.
+            for(i=vm; i<std::min(ve,vo); i+=step){
+                t3_t5_t6_t7_t1_s(vo,i,acs,0,false,ve_,l1,t);
+                x=ve_;
+                t7_t1_t2_t3_t5_s(ve_,ve,0,ace,false,v,l3,t);
+                l2=s-(l1+l3);
+                if(l2>0){
+                    if(l4<l1+l2+l3){ //! Don't pulish if curve lenght is less then the minimal curve.
+                        t3_t5_t6_t7_t1_s(vo,i,acs,0,pb,ve_,l1,t);
+                        t4_s(ve_,l2,pb,l2,t);
+                        t7_t1_t2_t3_t5_s(ve_,ve,0,ace,pb,v,l3,t);
+                        return sc_status::Ok;
+                    }
+                }
+            }
+        }
+        //! No solution after sampling, building minimal curve, respecting vo, vm, ve, acs, ace.
+        //! Counting on custom ve output.
+        t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,ve_,l1,t);
+        t7_t1_t2_t3_t5_s(ve_,ve,0,ace,pb,v,l3,t);
+        return sc_status::Ok;
     }
+
+
+
+    if(vo<vm && ve==vm){
+        if(ace==0){
+            t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
+            if(l1<s){
+                t4_s(vm,s-l1,pb,l,t);
+            }
+            return sc_status::Ok;
+        }
+        if(ace>0){
+            t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
+            v=ve_;
+
+            double va=0, vb=0;
+            t1_v_s(va,0,ace,false,vb,l,t);
+            double vh=(vb-va)/2;
+
+            t5_v_s_ve(ve_,ve_-vh,0,false,ace_,ve_,l2,t);
+            t7_v_s(ve_,ace_,0,false,ve_,l3,t);
+            t1_v_s(ve_,0,ace,false,ve_,l4,t);
+
+            l5=l1+l2+l3+l4;
+            t4_s(v,std::max(0.0,s-l5),pb,l,t);
+
+            t5_v_s_ve(v,v-vh,0,pb,ace_,ve_,l,t);
+            t7_v_s(ve_,ace_,0,pb,ve_,l,t);
+            t1_v_s(ve_,0,ace,pb,ve_,l,t);
+
+            return sc_status::Ok;
+        }
+        if(ace<0){
+            t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
+            v=ve_;
+
+            double va=0, vb=0;
+            t5_v_s(va,0,ace,false,vb,l,t);
+            double vh=(va-vb)/2;
+
+            t1_v_s_ve(ve_,ve_+vh,0,false,ace_,ve_,l2,t);
+            t3_v_s(ve_,ace_,0,false,ve_,l3,t);
+            t5_v_s(ve_,0,ace,false,ve_,l4,t);
+
+            l5=l1+l2+l3+l4;
+            t4_s(v,std::max(0.0,s-l5),pb,l,t);
+
+            t1_v_s_ve(v,v+vh,0,pb,ace_,ve_,l,t);
+            t3_v_s(ve_,ace_,0,pb,ve_,l,t);
+            t5_v_s(ve_,0,ace,pb,ve_,l,t);
+
+            return sc_status::Ok;
+        }
+
+    }
+
+    if(vo>vm && ve==vm){
+        if(ace==0){
+            t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,v,l1,t);
+            if(l1<s){
+                t4_s(vm,s-l1,pb,l,t);
+            }
+            return sc_status::Ok;
+        }
+        if(ace>0){
+            t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,ve_,l1,t);
+            v=ve_;
+
+            double va=0, vb=0;
+            t1_v_s(va,0,ace,false,vb,l,t);
+            double vh=(vb-va)/2;
+
+            t5_v_s_ve(ve_,ve_-vh,0,false,ace_,ve_,l2,t);
+            t7_v_s(ve_,ace_,0,false,ve_,l3,t);
+            t1_v_s(ve_,0,ace,false,ve_,l4,t);
+
+            l5=l1+l2+l3+l4;
+            t4_s(v,std::max(0.0,s-l5),pb,l,t);
+
+            t5_v_s_ve(v,v-vh,0,pb,ace_,ve_,l,t);
+            t7_v_s(ve_,ace_,0,pb,ve_,l,t);
+            t1_v_s(ve_,0,ace,pb,ve_,l,t);
+
+            return sc_status::Ok;
+        }
+        if(ace<0){
+            t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,ve_,l1,t);
+            v=ve_;
+
+            double va=0, vb=0;
+            t5_v_s(va,0,ace,false,vb,l,t);
+            double vh=(va-vb)/2;
+
+            t1_v_s_ve(ve_,ve_+vh,0,false,ace_,ve_,l2,t);
+            t3_v_s(ve_,ace_,0,false,ve_,l3,t);
+            t5_v_s(ve_,0,ace,false,ve_,l4,t);
+
+            l5=l1+l2+l3+l4;
+            t4_s(v,std::max(0.0,s-l5),pb,l,t);
+
+            t1_v_s_ve(v,v+vh,0,pb,ace_,ve_,l,t);
+            t3_v_s(ve_,ace_,0,pb,ve_,l,t);
+            t5_v_s(ve_,0,ace,pb,ve_,l,t);
+
+            return sc_status::Ok;
+        }
+
+    }
+
+    if(vo==vm && ve<vm){
+        if(acs==0){
+            t3_t5_t6_t7_t1_s(vm,ve,0,ace,false,v,l1,t);
+            if(l1<s){
+                t4_s(vm,s-l1,pb,l,t);
+                t3_t5_t6_t7_t1_s(vm,ve,0,ace,pb,v,l,t);
+            }
+            if(l1>=s){
+                t3_t5_t6_t7_t1_s(vm,ve,0,ace,pb,v,l,t);
+            }
+            return sc_status::Ok;
+        }
+        if(acs<0){
+            t7_v_s(vo,acs,0,pb,ve_,l1,t);
+            double vh=(vo-ve_)/2;
+            t1_v_s_ve(ve_,ve_+vh,0,pb,ace_,ve_,l2,t);
+            t3_v_s(ve_,ace_,0,pb,ve_,l3,t);
+            t3_t5_t6_t7_t1_s(ve_,ve,0,ace,false,v,l4,t);
+
+            l5=l1+l2+l3+l4;
+            if(l5<s){
+                t4_s(vm,s-l5,pb,l,t);
+                t3_t5_t6_t7_t1_s(vm,ve,0,ace,pb,v,l,t);
+            }
+            if(l5>=s){
+                t3_t5_t6_t7_t1_s(vm,ve,0,ace,pb,v,l,t);
+            }
+            return sc_status::Ok;
+        }
+        if(acs>0){
+            t3_v_s(vo,acs,0,pb,ve_,l1,t);
+            double vh=(ve_-vo)/2;
+            t5_v_s_ve(ve_,ve_-vh,0,pb,ace_,ve_,l2,t);
+            t7_v_s(ve_,ace_,0,pb,ve_,l3,t);
+            t3_t5_t6_t7_t1_s(ve_,ve,0,ace,false,v,l4,t);
+
+            l5=l1+l2+l3+l4;
+            if(l5<s){
+                t4_s(vm,s-l5,pb,l,t);
+                t3_t5_t6_t7_t1_s(vm,ve,0,ace,pb,v,l,t);
+            }
+            if(l5>=s){
+                t3_t5_t6_t7_t1_s(vm,ve,0,ace,pb,v,l,t);
+            }
+            return sc_status::Ok;
+        }
+
+
+    }
+
+    if(vo==vm && ve>vm){
+        if(acs==0){
+            t7_t1_t2_t3_t5_s(vm,ve,0,ace,false,ve_,l1,t);
+            if(l1<s){
+                t4_s(vm,s-l1,pb,l1,t);
+                t7_t1_t2_t3_t5_s(vm,ve,0,ace,pb,ve_,l2,t);
+            }
+            if(l1>=s){
+                t7_t1_t2_t3_t5_s(vm,ve,0,ace,pb,ve_,l1,t);
+            }
+            return sc_status::Ok;
+        }
+        if(acs<0){
+            t7_v_s(vo,acs,0,pb,ve_,l1,t);
+            double vh=(vo-ve_)/2;
+            t1_v_s_ve(ve_,ve_+vh,0,pb,ace_,ve_,l2,t);
+            t3_v_s(ve_,ace_,0,pb,ve_,l3,t);
+            t7_t1_t2_t3_t5_s(ve_,ve,0,ace,false,ve_,l4,t);
+
+            T l5=l1+l2+l3+l4;
+            if(l5<s){
+                t4_s(vm,s-l5,pb,l,t);
+                t7_t1_t2_t3_t5_s(vm,ve,0,ace,pb,ve_,l,t);
+            }
+            if(l5>=s){
+                t7_t1_t2_t3_t5_s(vm,ve,0,ace,pb,ve_,l,t);
+            }
+            return sc_status::Ok;
+        }
+        if(acs>0){
+            t3_v_s(vo,acs,0,pb,ve_,l1,t);
+            double vh=(ve_-vo)/2;
+            t5_v_s_ve(ve_,ve_-vh,0,pb,ace_,ve_,l2,t);
+            t7_v_s(ve_,ace_,0,pb,ve_,l3,t);
+            t7_t1_t2_t3_t5_s(ve_,ve,0,ace,false,ve_,l4,t);
+
+            T l5=l1+l2+l3+l4;
+            if(l5<s){
+                t4_s(vm,s-l5,pb,l,t);
+                t7_t1_t2_t3_t5_s(vm,ve,0,ace,pb,ve_,l,t);
+            }
+            if(l5>=s){
+                t7_t1_t2_t3_t5_s(vm,ve,0,ace,pb,ve_,l,t);
+            }
+            return sc_status::Ok;
+        }
+    }
+
     if(vo<vm && ve>vm){
 
+        t7_t1_t2_t3_t5_s(vo,vm,acs,0,pb,ve_,l1,t);
+        t7_t1_t2_t3_t5_s(ve_,ve,0,ace,false,v,l3,t);
+        l2=s-(l1+l3);
+
+        if(l2>0){
+            t4_s(ve_,l2,pb,l2,t);
+        }
+        if(ve_<ve){
+            t7_t1_t2_t3_t5_s(ve_,ve,0,ace,pb,ve_,l3,t);
+        }
+
+        if(l1+l2+l3>s){
+            //! std::cerr<<"sc_status::Motion_warning_custom_ve"<<std::endl;
+        }
+        return sc_status::Ok;
     }
+
     if(vo>vm && ve<vm){
 
+        t3_t5_t6_t7_t1_s(vo,vm,acs,0,pb,ve_,l1,t);
+        t3_t5_t6_t7_t1_s(ve_,ve,0,ace,false,v,l3,t);
+        l2=s-(l1+l3);
+
+        if(l2>0){
+            t4_s(ve_,l2,pb,l2,t);
+        }
+        if(ve_>ve){
+            t3_t5_t6_t7_t1_s(ve_,ve,0,ace,pb,v,l3,t);
+        }
+
+        if(l1+l2+l3>s){
+            //! std::cerr<<"sc_status::Motion_warning_custom_ve"<<std::endl;
+        }
+        return sc_status::Ok;
     }
-    if(vo>vm && ve>vm){
 
-    }
-
-    //! Interpolate at time.
-
-    return sc_status::Ok;
+    return sc_status::Error;
 }
 
 double sc_engine::curve_time(){
@@ -752,11 +1056,70 @@ void sc_engine::interpolate(T at_time, T &vi, T &si, T &ai){
     }
 }
 
+inline std::string sc_engine::print_period_id(sc_period_id id){
 
+    if(id==sc_period_id::id_none){
+        return "period none";
+    }
+    if(id==sc_period_id::id_t1){
+        return "period t1";
+    }
+    if(id==sc_period_id::id_t2){
+        return "period t2";
+    }
+    if(id==sc_period_id::id_t3){
+        return "period t3";
+    }
+    if(id==sc_period_id::id_t4){
+        return "period t4";
+    }
+    if(id==sc_period_id::id_t5){
+        return "period t5";
+    }
+    if(id==sc_period_id::id_t6){
+        return "period t6";
+    }
+    if(id==sc_period_id::id_t7){
+        return "period t7";
+    }
+    return "period error";
+}
 
+inline void sc_engine::print_diagnostics(){
 
+    std::cout<<std::endl;
+    std::cout<<"print journal:"<<std::endl;
 
+    for(uint i=0; i<pvec.size(); i++){
+        std::cout<<std::fixed
+                <<" id:"<<print_period_id(pvec.at(i).id)
+               <<" vo:"<<pvec.at(i).vo
+              <<" ve:"<<pvec.at(i).ve
+             <<" acs:"<<pvec.at(i).acs
+            <<" ace:"<<pvec.at(i).ace
+           <<" nsi:"<<pvec.at(i).ncs
+          <<" nct:"<<pvec.at(i).nct<<std::endl;
+    }
+}
 
+bool sc_engine::is_equal_except_vm(sc_motion_in a, sc_motion_in b){
+    if(
+            a.curacc==b.curacc &&
+            a.endacc==b.endacc &&
+            a.curvel==b.curvel &&
+            a.endvel==b.endvel &&
+            a.endpos==b.endpos){
+        return true;
+    }
+    return false;
+}
+
+bool sc_engine::is_equal_vm(sc_motion_in a, sc_motion_in b){
+    if(a.maxvel==b.maxvel){
+        return true;
+    }
+    return false;
+}
 
 
 

@@ -79,7 +79,7 @@ public:
 
     void interpolate(T at_time,
                      T &vi,
-                     T &si,
+                     T &dtg,
                      T &ai);
 
     double curve_time();
@@ -95,6 +95,9 @@ public:
                      sc_motion_in in,
                      sc_motion_out &out);
 
+    inline std::string print_period_id(sc_period_id id);
+    inline void print_diagnostics();
+
 private:
 
     T as=0;
@@ -104,6 +107,16 @@ private:
     T ct=0;
 
     std::vector<sc_period> pvec;
+    sc_motion_in old_in;
 
+    bool is_equal_except_vm(sc_motion_in a, sc_motion_in b);
+    bool is_equal_vm(sc_motion_in a, sc_motion_in b);
+    T sc_timer=0;
+    bool sc_finished=0;
+    double old_pos=0;
+    double new_pos=0;
+    double pos=0;
+    double vel=0;
+    double acc=0;
 };
 #endif

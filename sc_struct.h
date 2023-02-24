@@ -77,6 +77,8 @@ enum sc_motion_joint_id {
 enum sc_status {
     Error=0,
     Ok=1,
+    Busy=2,
+    Finished=3
 };
 
 #endif

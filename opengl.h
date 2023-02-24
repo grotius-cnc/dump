@@ -24,9 +24,8 @@ public:
     void setj1Vec(std::vector<double> theyVec);
     void setj2Vec(std::vector<double> theyVec);
 
-    void set1VecShift(double theyShift);
     void set2VecShift(double theyShift);
-    void set3VecShift(double theyShift);
+    void set1VecScale(double theScale);
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
